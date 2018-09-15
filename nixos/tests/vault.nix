@@ -1,5 +1,6 @@
 import ./make-test.nix ({ pkgs, ... }:
 {
+  # Change to show up in git
   name = "vault";
   meta = with pkgs.stdenv.lib.maintainers; {
     maintainers = [ lnl7 ];
@@ -8,6 +9,9 @@ import ./make-test.nix ({ pkgs, ... }:
     environment.systemPackages = [ pkgs.vault ];
     environment.variables.VAULT_ADDR = "http://127.0.0.1:8200";
     services.vault.enable = true;
+    services.vault.config = {
+
+    };
   };
 
   testScript =

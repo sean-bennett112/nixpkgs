@@ -306,6 +306,8 @@ in rec {
   tests.hadoop.yarn = callTestOnMatchingSystems [ "x86_64-linux" ] tests/hadoop/yarn.nix {};
   tests.hardened = callTest tests/hardened.nix { };
   tests.haproxy = callTest tests/haproxy.nix {};
+  tests.hashistack.consul = callTest tests/hashistack/consul.nix {};
+  tests.hashistack.nomad = callTest tests/hashistack/nomad.nix {};
   tests.hibernate = callTest tests/hibernate.nix {};
   tests.hitch = callTest tests/hitch {};
   tests.home-assistant = callTest tests/home-assistant.nix { };

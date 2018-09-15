@@ -1,25 +1,31 @@
+# NOTE: buildGo110Package is only because I'm currently on 18.03.
+#       this has been updated in master.
 { stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
   name = "nomad-${version}";
-  version = "0.7.1";
+  version = "0.8.5";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/nomad";
-  subPackages = [ "." ];
 
   src = fetchFromGitHub {
     owner = "hashicorp";
     repo = "nomad";
     inherit rev;
-    sha256 = "0hn80dqzxkwvk1zjk6px725mb2i3c06smqfj0yyjz96vgf7qbqy2";
+    sha256 = "04abw3kxvlibrg7dccilbrqnj25199al0raymc393a073izp9bj9";
   };
 
+  preBuild = ''
+    buildFlagsArray+=("-ldflags" "-X github.com/hashicorp/nomad/version.GitDescribe=v${version} -X github.com/hashicorp/nomad/version.Version=${version} -X github.com/hashicorp/nomad/version.VersionPrerelease=")
+  '';
+
   meta = with stdenv.lib; {
+    description = "Nomad is a flexible, enterprise-grade cluster scheduler designed to easily integrate into existing workflows. Nomad can run a diverse workload of micro-service, batch, containerized and non-containerized applications.";
     homepage = https://www.nomadproject.io/;
-    description = "A Distributed, Highly Available, Datacenter-Aware Scheduler";
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.darwin;
     license = licenses.mpl20;
-    maintainers = with maintainers; [ rushmorem pradeepchhetri ];
+    # TODO: Me?
+    # maintainers = with maintainers; [ pradeepchhetri ];
   };
 }

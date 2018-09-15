@@ -183,6 +183,7 @@
   ./services/cluster/kubernetes/default.nix
   ./services/cluster/kubernetes/dns.nix
   ./services/cluster/kubernetes/dashboard.nix
+  ./services/cluster/nomad/default.nix
   ./services/computing/boinc/client.nix
   ./services/computing/torque/server.nix
   ./services/computing/torque/mom.nix

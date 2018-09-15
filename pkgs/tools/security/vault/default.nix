@@ -1,6 +1,7 @@
 { stdenv, fetchFromGitHub, go, gox, removeReferencesTo }:
 
 let
+  # Change to show up in git
   vaultBashCompletions = fetchFromGitHub {
     owner = "iljaweis";
     repo = "vault-bash-completion";
@@ -9,13 +10,13 @@ let
   };
 in stdenv.mkDerivation rec {
   name = "vault-${version}";
-  version = "0.10.4";
+  version = "0.11.0";
 
   src = fetchFromGitHub {
     owner = "hashicorp";
     repo = "vault";
     rev = "v${version}";
-    sha256 = "1f11arvj7zp8wwkvv3nn7kyga0ci8psdif6djrnzwjksskdgdbx5";
+    sha256 = "03ag0jx0hkxbxnwh65d5mp7ajpbhvjs28vls9578fnfa96ablqg4";
   };
 
   nativeBuildInputs = [ go gox removeReferencesTo ];

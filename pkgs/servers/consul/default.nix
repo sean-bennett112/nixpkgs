@@ -1,8 +1,10 @@
-{ stdenv, buildGoPackage, consul-ui, fetchFromGitHub }:
+# NOTE: buildGo110Package is only because I'm currently on 18.03.
+#       this has been updated in master.
+{ stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
   name = "consul-${version}";
-  version = "0.9.3";
+  version = "1.2.3";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/consul";
@@ -11,11 +13,8 @@ buildGoPackage rec {
     owner = "hashicorp";
     repo = "consul";
     inherit rev;
-    sha256 = "1176frp7kimpycsmz9wrbizf46jgxr8jq7hz5w4q1x90lswvrxv3";
+    sha256 = "1lyq52qxawk9zkc61rnvqiyk5syrqckrgavzbqqdxj0qp3ljy5wp";
   };
-
-  # Keep consul.ui for backward compatability
-  passthru.ui = consul-ui;
 
   preBuild = ''
     buildFlagsArray+=("-ldflags" "-X github.com/hashicorp/consul/version.GitDescribe=v${version} -X github.com/hashicorp/consul/version.Version=${version} -X github.com/hashicorp/consul/version.VersionPrerelease=")
