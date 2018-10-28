@@ -1,10 +1,8 @@
-# NOTE: buildGo110Package is only because I'm currently on 18.03.
-#       this has been updated in master.
-{ stdenv, buildGoPackage, fetchFromGitHub }:
+{ stdenv, buildGoPackage, fetchFromGitHub, pkgs }:
 
 buildGoPackage rec {
   name = "nomad-${version}";
-  version = "0.8.5";
+  version = "0.8.6";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/nomad";
@@ -13,8 +11,10 @@ buildGoPackage rec {
     owner = "hashicorp";
     repo = "nomad";
     inherit rev;
-    sha256 = "04abw3kxvlibrg7dccilbrqnj25199al0raymc393a073izp9bj9";
+    sha256 = "1786hbgby9q3p4x28xdc06v12n8qvxqwis70mr80axb6r4kd7yqw";
   };
+
+  buildInputs = [ pkgs.iproute ];
 
   preBuild = ''
     buildFlagsArray+=("-ldflags" "-X github.com/hashicorp/nomad/version.GitDescribe=v${version} -X github.com/hashicorp/nomad/version.Version=${version} -X github.com/hashicorp/nomad/version.VersionPrerelease=")

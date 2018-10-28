@@ -1,10 +1,8 @@
-# NOTE: buildGo110Package is only because I'm currently on 18.03.
-#       this has been updated in master.
 { stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
   name = "consul-${version}";
-  version = "1.2.3";
+  version = "1.4.0-rc1";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/consul";
@@ -13,7 +11,7 @@ buildGoPackage rec {
     owner = "hashicorp";
     repo = "consul";
     inherit rev;
-    sha256 = "1lyq52qxawk9zkc61rnvqiyk5syrqckrgavzbqqdxj0qp3ljy5wp";
+    sha256 = "0kz7fn4jfa6wy5ykj6r7jk4qv5720l1z839v9j14kg7l6g2scm77";
   };
 
   preBuild = ''
