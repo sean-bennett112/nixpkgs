@@ -27,6 +27,15 @@ let
     Xft.hintstyle: hintslight
   '';
 
+  mkCases = session:
+    concatStrings (
+      mapAttrsToList (name: starts: ''
+                       (${name})
+                         ${concatMapStringsSep "\n  " (n: n.start) starts}
+                         ;;
+                     '') (lib.groupBy (n: n.name) session)
+    );
+
   # file provided by services.xserver.displayManager.session.wrapper
   xsessionWrapper = pkgs.writeScript "xsession-wrapper"
     ''
@@ -139,21 +148,13 @@ let
 
       # Start the window manager.
       case "$windowManager" in
-        ${concatMapStrings (s: ''
-          (${s.name})
-            ${s.start}
-            ;;
-        '') wm}
+        ${mkCases wm}
         (*) echo "$0: Window manager '$windowManager' not found.";;
       esac
 
       # Start the desktop manager.
       case "$desktopManager" in
-        ${concatMapStrings (s: ''
-          (${s.name})
-            ${s.start}
-            ;;
-        '') dm}
+        ${mkCases dm}
         (*) echo "$0: Desktop manager '$desktopManager' not found.";;
       esac
 
@@ -221,6 +222,17 @@ in
         description = "List of arguments for the X server.";
       };
 
+      setupCommands = mkOption {
+        type = types.lines;
+        default = "";
+        description = ''
+          Shell commands executed just after the X server has started.
+
+          This option is only effective for display managers for which this feature
+          is supported; currently these are LightDM, GDM and SDDM.
+        '';
+      };
+
       sessionCommands = mkOption {
         type = types.lines;
         default = "";
@@ -265,7 +277,7 @@ in
           session.  Each session script can set the
           <varname>waitPID</varname> shell variable to make this script
           wait until the end of the user session.  Each script is used
-          to define either a windows manager or a desktop manager.  These
+          to define either a window manager or a desktop manager.  These
           can be differentiated by setting the attribute
           <varname>manage</varname> either to <literal>"window"</literal>
           or <literal>"desktop"</literal>.

@@ -1,4 +1,4 @@
-{ targetPlatform, stdenv, fetchurl, writeTextDir }:
+{ stdenv, fetchurl, writeTextDir }:
 
 let self =
 stdenv.mkDerivation rec {
@@ -8,6 +8,8 @@ stdenv.mkDerivation rec {
     url = "https://c-ares.haxx.se/download/${name}.tar.gz";
     sha256 = "0vnwmbvymw677k780kpb6sb8i3szdp89rzy8mz1fwg1657yw3ls5";
   };
+
+  configureFlags = if stdenv.hostPlatform.isWindows then [ "--disable-shared" "--enable-static" ] else null;
 
   # ares_android.h header is missing
   # see issue https://github.com/c-ares/c-ares/issues/216
@@ -40,8 +42,8 @@ stdenv.mkDerivation rec {
       )
       set_property(TARGET c-ares::cares APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
       set_target_properties(c-ares::cares PROPERTIES
-        IMPORTED_LOCATION_RELEASE "${self}/lib/libcares${targetPlatform.extensions.sharedLibrary}"
-        IMPORTED_SONAME_RELEASE "libcares${targetPlatform.extensions.sharedLibrary}"
+        IMPORTED_LOCATION_RELEASE "${self}/lib/libcares${stdenv.targetPlatform.extensions.sharedLibrary}"
+        IMPORTED_SONAME_RELEASE "libcares${stdenv.targetPlatform.extensions.sharedLibrary}"
         )
       add_library(c-ares::cares_shared INTERFACE IMPORTED)
       set_target_properties(c-ares::cares_shared PROPERTIES INTERFACE_LINK_LIBRARIES "c-ares::cares")

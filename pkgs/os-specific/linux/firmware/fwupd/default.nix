@@ -7,7 +7,7 @@
 }:
 let
   # Updating? Keep $out/etc synchronized with passthru.filesInstalledToEtc
-  version = "1.1.1";
+  version = "1.1.2";
   python = python3.withPackages (p: with p; [ pygobject3 pycairo pillow ]);
   installedTestsPython = python3.withPackages (p: with p; [ pygobject3 requests ]);
 
@@ -18,7 +18,7 @@ in stdenv.mkDerivation {
   name = "fwupd-${version}";
   src = fetchurl {
     url = "https://people.freedesktop.org/~hughsient/releases/fwupd-${version}.tar.xz";
-    sha256 = "0szakfnp6pl8vv3ivb40p5j8pxapfp724a55s2dr1qzzdlbjd08s";
+    sha256 = "1qhg8h1dv9k3i0429j0wl37rpxfbahggfd1j8s7a4cw83k42cgfs";
   };
 
   outputs = [ "out" "lib" "dev" "devdoc" "man" "installedTests" ];
@@ -78,6 +78,19 @@ in stdenv.mkDerivation {
   '';
 
   FONTCONFIG_FILE = fontsConf; # Fontconfig error: Cannot load default config file
+
+  # TODO: wrapGAppsHook wraps efi capsule even though it is not elf
+  dontWrapGApps = true;
+  # so we need to wrap the executables manually
+  postFixup = ''
+    find -L "$out/bin" "$out/libexec" -type f -executable -print0 \
+      | while IFS= read -r -d ''' file; do
+      if [[ "''${file}" != *.efi ]]; then
+        echo "Wrapping program ''${file}"
+        wrapProgram "''${file}" "''${gappsWrapperArgs[@]}"
+      fi
+    done
+  '';
 
   # /etc/fwupd/uefi.conf is created by the services.hardware.fwupd NixOS module
   passthru = {

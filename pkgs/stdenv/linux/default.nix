@@ -92,7 +92,6 @@ let
              else lib.makeOverridable (import ../../build-support/cc-wrapper) {
           name = "${name}-gcc-wrapper";
           nativeTools = false;
-          propagateDoc = false;
           nativeLibc = false;
           buildPackages = lib.optionalAttrs (prevStage ? stdenv) {
             inherit (prevStage) stdenv;
@@ -251,7 +250,8 @@ in
     };
     extraNativeBuildInputs = [ prevStage.patchelf prevStage.paxctl ] ++
       # Many tarballs come with obsolete config.sub/config.guess that don't recognize aarch64.
-      lib.optional (!localSystem.isx86) prevStage.updateAutotoolsGnuConfigScriptsHook;
+      lib.optional (!localSystem.isx86 || localSystem.libc == "musl")
+                   prevStage.updateAutotoolsGnuConfigScriptsHook;
   })
 
 
@@ -292,7 +292,8 @@ in
     };
     extraNativeBuildInputs = [ prevStage.patchelf prevStage.xz ] ++
       # Many tarballs come with obsolete config.sub/config.guess that don't recognize aarch64.
-      lib.optional (!localSystem.isx86) prevStage.updateAutotoolsGnuConfigScriptsHook;
+      lib.optional (!localSystem.isx86 || localSystem.libc == "musl")
+                   prevStage.updateAutotoolsGnuConfigScriptsHook;
   })
 
   # Construct the final stdenv.  It uses the Glibc and GCC, and adds
@@ -324,7 +325,8 @@ in
 
       extraNativeBuildInputs = [ prevStage.patchelf prevStage.paxctl ] ++
         # Many tarballs come with obsolete config.sub/config.guess that don't recognize aarch64.
-        lib.optional (!localSystem.isx86) prevStage.updateAutotoolsGnuConfigScriptsHook;
+        lib.optional (!localSystem.isx86 || localSystem.libc == "musl")
+        prevStage.updateAutotoolsGnuConfigScriptsHook;
 
       cc = prevStage.gcc;
 
@@ -343,8 +345,8 @@ in
       # Mainly avoid reference to bootstrap tools
       allowedRequisites = with prevStage; with lib;
         # Simple executable tools
-        concatMap (p: [ (getBin p) (getLib p) ])
-          [ gzip bzip2 xz bash binutils.bintools coreutils diffutils findutils
+        concatMap (p: [ (getBin p) (getLib p) ]) [
+            gzip bzip2 xz bash binutils.bintools coreutils diffutils findutils
             gawk gnumake gnused gnutar gnugrep gnupatch patchelf ed paxctl
           ]
         # Library dependencies
@@ -357,7 +359,7 @@ in
         ++  [ /*propagated from .dev*/ linuxHeaders
             binutils gcc gcc.cc gcc.cc.lib gcc.expand-response-params
           ]
-          ++ lib.optionals (!localSystem.isx86)
+          ++ lib.optionals (!localSystem.isx86 || localSystem.libc == "musl")
             [ prevStage.updateAutotoolsGnuConfigScriptsHook prevStage.gnu-config ];
 
       overrides = self: super: {
@@ -366,7 +368,7 @@ in
           gnumake gnused gnutar gnugrep gnupatch patchelf
           attr acl paxctl zlib pcre;
         ${localSystem.libc} = getLibc prevStage;
-      } // lib.optionalAttrs (super.targetPlatform == localSystem) {
+      } // lib.optionalAttrs (super.stdenv.targetPlatform == localSystem) {
         # Need to get rid of these when cross-compiling.
         inherit (prevStage) binutils binutils-unwrapped;
         gcc = cc;

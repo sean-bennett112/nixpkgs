@@ -1,5 +1,4 @@
-{ stdenv, fetchurl, buildPackages, perl
-, buildPlatform, hostPlatform
+{ stdenv, fetchurl, buildPackages, perl, coreutils
 , withCryptodev ? false, cryptodevHeaders
 , enableSSL2 ? false
 , static ? false
@@ -20,8 +19,8 @@ let
       (args.patches or [])
       ++ [ ./nix-ssl-cert-file.patch ]
       ++ optional (versionOlder version "1.1.0")
-          (if hostPlatform.isDarwin then ./use-etc-ssl-certs-darwin.patch else ./use-etc-ssl-certs.patch)
-      ++ optional (versionOlder version "1.0.2" && hostPlatform.isDarwin)
+          (if stdenv.hostPlatform.isDarwin then ./use-etc-ssl-certs-darwin.patch else ./use-etc-ssl-certs.patch)
+      ++ optional (versionOlder version "1.0.2" && stdenv.hostPlatform.isDarwin)
            ./darwin-arch.patch;
 
     postPatch = ''
@@ -32,6 +31,8 @@ let
         substituteInPlace "$a" \
           --replace /bin/rm rm
       done
+    '' + optionalString (versionAtLeast version "1.1.1") ''
+      substituteInPlace config --replace '/usr/bin/env' '${coreutils}/bin/env'
     '' + optionalString (versionAtLeast version "1.1.0" && stdenv.hostPlatform.isMusl) ''
       substituteInPlace crypto/async/arch/async_posix.h \
         --replace '!defined(__ANDROID__) && !defined(__OpenBSD__)' \
@@ -40,7 +41,7 @@ let
 
     outputs = [ "bin" "dev" "out" "man" ];
     setOutputFlags = false;
-    separateDebugInfo = hostPlatform.isLinux;
+    separateDebugInfo = stdenv.hostPlatform.isLinux;
 
     nativeBuildInputs = [ perl ];
     buildInputs = stdenv.lib.optional withCryptodev cryptodevHeaders;
@@ -50,19 +51,21 @@ let
     configureScript = {
         "x86_64-darwin"  = "./Configure darwin64-x86_64-cc";
         "x86_64-solaris" = "./Configure solaris64-x86_64-gcc";
-      }.${hostPlatform.system} or (
-        if hostPlatform == buildPlatform
+        "armv6l-linux" = "./Configure linux-armv4 -march=armv6";
+        "armv7l-linux" = "./Configure linux-armv4 -march=armv7-a";
+      }.${stdenv.hostPlatform.system} or (
+        if stdenv.hostPlatform == stdenv.buildPlatform
           then "./config"
-        else if hostPlatform.isMinGW
+        else if stdenv.hostPlatform.isMinGW
           then "./Configure mingw${optionalString
-                                     (hostPlatform.parsed.cpu.bits != 32)
-                                     (toString hostPlatform.parsed.cpu.bits)}"
-        else if hostPlatform.isLinux
-          then "./Configure linux-generic${toString hostPlatform.parsed.cpu.bits}"
-        else if hostPlatform.isiOS
-          then "./Configure ios${toString hostPlatform.parsed.cpu.bits}-cross"
+                                     (stdenv.hostPlatform.parsed.cpu.bits != 32)
+                                     (toString stdenv.hostPlatform.parsed.cpu.bits)}"
+        else if stdenv.hostPlatform.isLinux
+          then "./Configure linux-generic${toString stdenv.hostPlatform.parsed.cpu.bits}"
+        else if stdenv.hostPlatform.isiOS
+          then "./Configure ios${toString stdenv.hostPlatform.parsed.cpu.bits}-cross"
         else
-          throw "Not sure what configuration to use for ${hostPlatform.config}"
+          throw "Not sure what configuration to use for ${stdenv.hostPlatform.config}"
       );
 
     configureFlags = [
@@ -73,7 +76,7 @@ let
       "-DHAVE_CRYPTODEV"
       "-DUSE_CRYPTODEV_DIGESTS"
     ] ++ stdenv.lib.optional enableSSL2 "enable-ssl2"
-      ++ stdenv.lib.optional (versionAtLeast version "1.1.0" && hostPlatform.isAarch64) "no-afalgeng";
+      ++ stdenv.lib.optional (versionAtLeast version "1.1.0" && stdenv.hostPlatform.isAarch64) "no-afalgeng";
 
     makeFlags = [ "MANDIR=$(man)/share/man" ];
 
@@ -126,9 +129,9 @@ in {
     sha256 = "003xh9f898i56344vpvpxxxzmikivxig4xwlm7vbi7m8n43qxaah";
   };
 
-  openssl_1_1_0 = common {
-    version = "1.1.0i";
-    sha256 = "16fgaf113p6s5ixw227sycvihh3zx6f6rf0hvjjhxk68m12cigzb";
+  openssl_1_1 = common {
+    version = "1.1.1";
+    sha256 = "0gbab2fjgms1kx5xjvqx8bxhr98k4r8l2fa8vw7kvh491xd8fdi8";
   };
 
 }

@@ -1,7 +1,8 @@
 { stdenv, fetchFromGitHub, go, gox, removeReferencesTo }:
 
 let
-  # Change to show up in git
+  # Deprecated since vault 0.8.2: use `vault -autocomplete-install` instead
+  # to install auto-complete for bash, zsh and fish
   vaultBashCompletions = fetchFromGitHub {
     owner = "iljaweis";
     repo = "vault-bash-completion";
@@ -10,13 +11,13 @@ let
   };
 in stdenv.mkDerivation rec {
   name = "vault-${version}";
-  version = "0.11.0";
+  version = "0.11.2";
 
   src = fetchFromGitHub {
     owner = "hashicorp";
     repo = "vault";
     rev = "v${version}";
-    sha256 = "03ag0jx0hkxbxnwh65d5mp7ajpbhvjs28vls9578fnfa96ablqg4";
+    sha256 = "0lckpfp1yw6rfq2cardsp2qjiajg706qjk98cycrlsa5nr2csafa";
   };
 
   nativeBuildInputs = [ go gox removeReferencesTo ];

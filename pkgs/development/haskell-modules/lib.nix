@@ -245,12 +245,13 @@ rec {
      on hackage. This can be used as a test for the source distribution,
      assuming the build fails when packaging mistakes are in the cabal file.
    */
-  buildFromSdist = pkg: lib.overrideDerivation pkg (drv: {
-    unpackPhase = let src = sdistTarball pkg; tarname = "${pkg.pname}-${pkg.version}"; in ''
-      echo "Source tarball is at ${src}/${tarname}.tar.gz"
-      tar xf ${src}/${tarname}.tar.gz
-      cd ${pkg.pname}-*
-    '';
+  buildFromSdist = pkg: overrideCabal pkg (drv: {
+    src = "${sdistTarball pkg}/${pkg.pname}-${pkg.version}.tar.gz";
+
+    # Revising and jailbreaking the cabal file has been handled in sdistTarball
+    revision = null;
+    editedCabalFile = null;
+    jailbreak = false;
   });
 
   /* Build the package in a strict way to uncover potential problems.
@@ -298,15 +299,13 @@ rec {
   overrideSrc = drv: { src, version ? drv.version }:
     overrideCabal drv (_: { inherit src version; editedCabalFile = null; });
 
+  # Get all of the build inputs of a haskell package, divided by category.
+  getBuildInputs = p: p.getBuildInputs;
+
   # Extract the haskell build inputs of a haskell package.
   # This is useful to build environments for developing on that
   # package.
-  getHaskellBuildInputs = p:
-    (overrideCabal p (args: {
-      passthru = (args.passthru or {}) // {
-        _getHaskellBuildInputs = (extractBuildInputs p.compiler args).haskellBuildInputs;
-      };
-    }))._getHaskellBuildInputs;
+  getHaskellBuildInputs = p: (getBuildInputs p).haskellBuildInputs;
 
   # Under normal evaluation, simply return the original package. Under
   # nix-shell evaluation, return a nix-shell optimized environment.
@@ -335,55 +334,6 @@ rec {
                   , doBenchmark ? false
                   , ...
                   }: { inherit doCheck doBenchmark; };
-
-  # Divide the build inputs of the package into useful sets.
-  extractBuildInputs = ghc:
-    { setupHaskellDepends ? [], extraLibraries ? []
-    , librarySystemDepends ? [], executableSystemDepends ? []
-    , pkgconfigDepends ? [], libraryPkgconfigDepends ? []
-    , executablePkgconfigDepends ? [], testPkgconfigDepends ? []
-    , benchmarkPkgconfigDepends ? [], testDepends ? []
-    , testHaskellDepends ? [], testSystemDepends ? []
-    , testToolDepends ? [], benchmarkDepends ? []
-    , benchmarkHaskellDepends ? [], benchmarkSystemDepends ? []
-    , benchmarkToolDepends ? [], buildDepends ? []
-    , libraryHaskellDepends ? [], executableHaskellDepends ? []
-    , ...
-    }@args:
-    let inherit (ghcInfo ghc) isGhcjs nativeGhc;
-        inherit (controlPhases ghc args) doCheck doBenchmark;
-        isHaskellPkg = x: x ? isHaskellLibrary;
-        allPkgconfigDepends =
-          pkgconfigDepends ++ libraryPkgconfigDepends ++
-          executablePkgconfigDepends ++
-          lib.optionals doCheck testPkgconfigDepends ++
-          lib.optionals doBenchmark benchmarkPkgconfigDepends;
-        otherBuildInputs =
-          setupHaskellDepends ++ extraLibraries ++
-          librarySystemDepends ++ executableSystemDepends ++
-          allPkgconfigDepends ++
-          lib.optionals doCheck ( testDepends ++ testHaskellDepends ++
-                                  testSystemDepends ++ testToolDepends
-                                ) ++
-          # ghcjs's hsc2hs calls out to the native hsc2hs
-          lib.optional isGhcjs nativeGhc ++
-          lib.optionals doBenchmark ( benchmarkDepends ++
-                                      benchmarkHaskellDepends ++
-                                      benchmarkSystemDepends ++
-                                      benchmarkToolDepends
-                                    );
-        propagatedBuildInputs =
-          buildDepends ++ libraryHaskellDepends ++
-          executableHaskellDepends;
-        allBuildInputs = propagatedBuildInputs ++ otherBuildInputs;
-        isHaskellPartition =
-          lib.partition isHaskellPkg allBuildInputs;
-    in
-      { haskellBuildInputs = isHaskellPartition.right;
-        systemBuildInputs = isHaskellPartition.wrong;
-        inherit propagatedBuildInputs otherBuildInputs
-          allPkgconfigDepends;
-      };
 
   # Utility to convert a directory full of `cabal2nix`-generated files into a
   # package override set

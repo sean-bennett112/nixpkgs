@@ -2,22 +2,22 @@
   gtk2, wrapGAppsHook, libXScrnSaver, libxkbfile, libsecret }:
 
 let
-  version = "1.26.1";
+  version = "1.28.2";
   channel = "stable";
 
   plat = {
     "i686-linux" = "linux-ia32";
     "x86_64-linux" = "linux-x64";
     "x86_64-darwin" = "darwin";
-  }.${stdenv.system};
+  }.${stdenv.hostPlatform.system};
 
   sha256 = {
-    "i686-linux" = "1g7kqbz6mrf8ngx2bnwpi9fifq5rjznxgsgwjb532z3nh92ypa8n";
-    "x86_64-linux" = "02yldycakn5zxj1ji4nmhdyazqlkjqpzdj3g8j501c3j28pgiwjy";
-    "x86_64-darwin" = "0pnsfkh20mj7pzqw7wlfd98jqc6a1mnsq1iira15n7fafqgj8zpl";
-  }.${stdenv.system};
+    "i686-linux" = "13zgx80qzq1wvss3byh56rvp2bdxywc4xmhhljsqrxf17g86g2zr";
+    "x86_64-linux" = "1z50hkr9mcf76hlr1jb80nbvpxbpm2bh0l63yh9yqpalmz66xbfy";
+    "x86_64-darwin" = "0n7lavpylg1q89qa64z4z1v7pgmwb2kidc57cgpvjnhjg8idys33";
+  }.${stdenv.hostPlatform.system};
 
-  archive_fmt = if stdenv.system == "x86_64-darwin" then "zip" else "tar.gz";
+  archive_fmt = if stdenv.hostPlatform.system == "x86_64-darwin" then "zip" else "tar.gz";
 
   rpath = lib.concatStringsSep ":" [
     atomEnv.libPath
@@ -48,12 +48,12 @@ in
       categories = "GNOME;GTK;Utility;TextEditor;Development;";
     };
 
-    buildInputs = if stdenv.system == "x86_64-darwin"
+    buildInputs = if stdenv.hostPlatform.system == "x86_64-darwin"
       then [ unzip libXScrnSaver libsecret ]
       else [ wrapGAppsHook libXScrnSaver libxkbfile libsecret ];
 
     installPhase =
-      if stdenv.system == "x86_64-darwin" then ''
+      if stdenv.hostPlatform.system == "x86_64-darwin" then ''
         mkdir -p $out/lib/vscode $out/bin
         cp -r ./* $out/lib/vscode
         ln -s $out/lib/vscode/Contents/Resources/app/bin/code $out/bin
@@ -72,7 +72,7 @@ in
         cp $out/lib/vscode/resources/app/resources/linux/code.png $out/share/pixmaps/code.png
       '';
 
-    postFixup = lib.optionalString (stdenv.system == "i686-linux" || stdenv.system == "x86_64-linux") ''
+    postFixup = lib.optionalString (stdenv.hostPlatform.system == "i686-linux" || stdenv.hostPlatform.system == "x86_64-linux") ''
       patchelf \
         --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
         --set-rpath "${rpath}" \

@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
 
   src = fetchurl {
-    url = "mirror://gnome/sources/evolution-data-server/${gnome3.versionBranch version}/${name}.tar.xz";
+    url = "mirror://gnome/sources/evolution-data-server/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
     sha256 = "1247gv0ggwnd1i2n7iglb3crfapx6s9nrl896bzy9k87fb94hlyr";
   };
 
@@ -37,11 +37,9 @@ stdenv.mkDerivation rec {
     "-DENABLE_VALA_BINDINGS=ON"
     "-DENABLE_INTROSPECTION=ON"
     "-DCMAKE_SKIP_BUILD_RPATH=OFF"
+    "-DINCLUDE_INSTALL_DIR=${placeholder "dev"}/include"
   ];
 
-  postPatch = ''
-    cmakeFlags="-DINCLUDE_INSTALL_DIR=$dev/include $cmakeFlags"
-  '';
 
   passthru = {
     updateScript = gnome3.updateScript {

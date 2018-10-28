@@ -1,4 +1,5 @@
 { buildPackages, runCommand, nettools, bc, bison, flex, perl, rsync, gmp, libmpc, mpfr, openssl
+, pkgconfig ? null, ncurses ? null
 , libelf
 , utillinux
 , writeTextFile
@@ -36,8 +37,6 @@ in {
   allowImportFromDerivation ? false,
   # ignored
   features ? null,
-
-  hostPlatform
 }:
 
 let
@@ -56,8 +55,8 @@ let
 
   commonMakeFlags = [
     "O=$(buildRoot)"
-  ] ++ stdenv.lib.optionals (hostPlatform.platform ? kernelMakeFlags)
-    hostPlatform.platform.kernelMakeFlags;
+  ] ++ stdenv.lib.optionals (stdenv.hostPlatform.platform ? kernelMakeFlags)
+    stdenv.hostPlatform.platform.kernelMakeFlags;
 
   drvAttrs = config_: platform: kernelPatches: configfile:
     let
@@ -249,13 +248,14 @@ let
           maintainers.thoughtpolice
         ];
         platforms = platforms.linux;
+        timeout = 14400; # 4 hours
       } // extraMeta;
     };
 in
 
 assert stdenv.lib.versionAtLeast version "4.14" -> libelf != null;
 assert stdenv.lib.versionAtLeast version "4.15" -> utillinux != null;
-stdenv.mkDerivation ((drvAttrs config hostPlatform.platform kernelPatches configfile) // {
+stdenv.mkDerivation ((drvAttrs config stdenv.hostPlatform.platform kernelPatches configfile) // {
   name = "linux-${version}";
 
   enableParallelBuilding = true;
@@ -266,6 +266,7 @@ stdenv.mkDerivation ((drvAttrs config hostPlatform.platform kernelPatches config
       ++ optional (stdenv.lib.versionAtLeast version "4.14") libelf
       ++ optional (stdenv.lib.versionAtLeast version "4.15") utillinux
       ++ optionals (stdenv.lib.versionAtLeast version "4.16") [ bison flex ]
+      ++ optionals stdenv.lib.inNixShell [ pkgconfig ncurses ]
       ;
 
   hardeningDisable = [ "bindnow" "format" "fortify" "stackprotector" "pic" ];
@@ -279,5 +280,5 @@ stdenv.mkDerivation ((drvAttrs config hostPlatform.platform kernelPatches config
     "CROSS_COMPILE=${stdenv.cc.targetPrefix}"
   ];
 
-  karch = hostPlatform.platform.kernelArch;
+  karch = stdenv.hostPlatform.platform.kernelArch;
 })

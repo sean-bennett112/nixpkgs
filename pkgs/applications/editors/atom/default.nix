@@ -1,6 +1,19 @@
 { stdenv, pkgs, fetchurl, makeWrapper, wrapGAppsHook, gvfs, gtk3, atomEnv }:
 
 let
+  versions = {
+    atom = {
+      version = "1.32.0";
+      sha256 = "0dha8zi4gshxj993ns7ybi7q86pfqwzsasrk3a7b5xrdqbrcm5md";
+    };
+
+    atom-beta = {
+      version = "1.33.0";
+      beta = 0;
+      sha256 = "1x4s12zvfd2gjy7mimndbhs6x9k37jq4dyy6r1mzhwfysix74val";
+    };
+  };
+
   common = pname: {version, sha256, beta ? null}:
       let fullVersion = version + stdenv.lib.optionalString (beta != null) "-beta${toString beta}";
       name = "${pname}-${fullVersion}";
@@ -71,15 +84,4 @@ let
       platforms = platforms.x86_64;
     };
   };
-in stdenv.lib.mapAttrs common {
-  atom = {
-    version = "1.29.0";
-    sha256 = "0f0qpn8aw2qlqk8ah71xvk4vcmwsnsf2f3g4hz0rvaqnhb9ri9fz";
-  };
-
-  atom-beta = {
-    version = "1.30.0";
-    beta = 1;
-    sha256 = "0ygqj81xlwhzmmci0d0rd2q7xfskxd1k7h6db3zvvjdxjcnyqp1z";
-  };
-}
+in stdenv.lib.mapAttrs common versions

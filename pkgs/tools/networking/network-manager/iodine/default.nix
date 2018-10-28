@@ -28,8 +28,10 @@ in stdenv.mkDerivation rec {
   NIX_CFLAGS_COMPILE = "-Wno-deprecated-declarations";
 
   configureFlags = [
+    "--without-libnm-glib"
     "--with-gnome=${if withGnome then "yes" else "no"}"
     "--localstatedir=/" # needed for the management socket under /run/NetworkManager
+    "--enable-absolute-paths"
   ];
 
   passthru = {
