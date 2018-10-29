@@ -113,8 +113,8 @@ in rec {
   terraform_0_10-full = terraform_0_10.withPlugins lib.attrValues;
 
   terraform_0_11 = pluggable (generic {
-    version = "0.11.8";
-    sha256 = "1kdmx21l32vj5kvkimkx0s5mxgmgkdwlgbin4f3iqjflzip0cddh";
+    version = "0.11.10";
+    sha256 = "08mapla89g106bvqr41zfd7l4ki55by6207qlxq9caiha54nx4nb";
     patches = [ ./provider-path.patch ];
     passthru = { inherit plugins; };
   });
@@ -122,6 +122,8 @@ in rec {
   terraform_0_11-full = terraform_0_11.withPlugins lib.attrValues;
 
   # TODO: Change to full after release, currently pointing to the alpha.
+  #       Looks like the alpha still has a lot of issues. Maybe skip
+  #       for now.
   terraform_0_12 = generic {
     version = "0.12.0-alpha1";
     sha256 = "06bp43ri99kwiq3y0fwbcp8d5040hj1fmbk8bz27jdlwc2nd4c8b";
