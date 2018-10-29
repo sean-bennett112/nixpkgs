@@ -125,7 +125,11 @@ in rec {
   terraform_0_12 = pluggable (generic {
     version = "0.12.0-alpha1";
     sha256 = "06bp43ri99kwiq3y0fwbcp8d5040hj1fmbk8bz27jdlwc2nd4c8b";
-    patches = [ ./provider-path.patch ];
+    # TODO: Add this back in later.
+    #       It looks like there's a mismatch between the plugins in nix
+    #       and the plugins v0.12 expects. Until that's fixed, we should
+    #       just let Terraform manage its own plugins.
+    # patches = [ ./provider-path.patch ];
     passthru = { inherit plugins; };
   });
 
