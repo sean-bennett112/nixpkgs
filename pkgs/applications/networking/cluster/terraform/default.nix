@@ -130,7 +130,7 @@ in rec {
     #       and the plugins v0.12 expects. Until that's fixed, we should
     #       just let Terraform manage its own plugins.
     # patches = [ ./provider-path.patch ];
-    passthru = { inherit plugins; };
+    # passthru = { inherit plugins; };
   });
 
   terraform_0_12-full = terraform_0_12.withPlugins lib.attrValues;
