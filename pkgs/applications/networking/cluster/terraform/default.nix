@@ -122,7 +122,7 @@ in rec {
   terraform_0_11-full = terraform_0_11.withPlugins lib.attrValues;
 
   # TODO: Change to full after release, currently pointing to the alpha.
-  terraform_0_12 = pluggable (generic {
+  terraform_0_12 = generic {
     version = "0.12.0-alpha1";
     sha256 = "06bp43ri99kwiq3y0fwbcp8d5040hj1fmbk8bz27jdlwc2nd4c8b";
     # TODO: Add this back in later.
@@ -131,7 +131,7 @@ in rec {
     #       just let Terraform manage its own plugins.
     # patches = [ ./provider-path.patch ];
     # passthru = { inherit plugins; };
-  });
+  };
 
   terraform_0_12-full = terraform_0_12.withPlugins lib.attrValues;
 
