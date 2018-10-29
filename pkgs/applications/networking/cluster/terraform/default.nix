@@ -133,7 +133,7 @@ in rec {
     # passthru = { inherit plugins; };
   };
 
-  terraform_0_12-full = terraform_0_12.withPlugins lib.attrValues;
+  terraform_0_12-full = terraform_0_12;
 
   # Tests that the plugins are being used. Terraform looks at the specific
   # file pattern and if the plugin is not found it will try to download it
